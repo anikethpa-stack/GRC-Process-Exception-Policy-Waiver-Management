@@ -1,0 +1,120 @@
+EXCEPTION PORTFOLIO SUMMARY
+==================================================
+Report Date: 2026-04-15
+
+EXECUTIVE SUMMARY
+
+Total Active Exceptions: 402
+  - CRITICAL Risk: 38
+  - HIGH Risk: 190
+  - MEDIUM Risk: 149
+  - LOW Risk: 25
+
+Expiring in next 30 days: 82
+Expired (Not Revoked): 38
+
+BREAKDOWN BY TYPE
+
+  data_access_exception: 77
+  admin_access: 64
+  firewall_rule_open: 61
+  vendor_access_waiver: 55
+  encryption_waiver: 54
+  background_check_pending: 53
+  dev_environment_exception: 38
+
+TOP HIGH-RISK EXCEPTIONS
+
+  1. EXC-0040 (dev_environment_exception) - CRITICAL
+     Requester: olivia.lee | Approver: manager.001
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-05-28 passed (322 days ago); still marked ACTIVE
+     -> CRITICAL_RISK_EXCEPTION: Categorised as CRITICAL risk and currently in force — requires re-review
+     -> LONG_RUNNING_EXCEPTION: Active for 361 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (dev_environment_exception)
+
+  2. EXC-0117 (encryption_waiver) - CRITICAL
+     Requester: mia.davis | Approver: alice.smith
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-06-27 passed (292 days ago); still marked ACTIVE
+     -> CRITICAL_RISK_EXCEPTION: Categorised as CRITICAL risk and currently in force — requires re-review
+     -> LONG_RUNNING_EXCEPTION: Active for 339 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (encryption_waiver)
+
+  3. EXC-0493 (data_access_exception) - CRITICAL
+     Requester: dev.lead | Approver: platform.lead
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-07-03 passed (286 days ago); still marked ACTIVE
+     -> LONG_RUNNING_EXCEPTION: Active for 331 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (data_access_exception)
+
+  4. EXC-0200 (encryption_waiver) - CRITICAL
+     Requester: infra.team | Approver: platform.lead
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-06-02 passed (317 days ago); still marked ACTIVE
+     -> LONG_RUNNING_EXCEPTION: Active for 328 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (encryption_waiver)
+
+  5. EXC-0599 (data_access_exception) - CRITICAL
+     Requester: frank.clark | Approver: platform.lead
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-06-09 passed (310 days ago); still marked ACTIVE
+     -> CRITICAL_RISK_EXCEPTION: Categorised as CRITICAL risk and currently in force — requires re-review
+     -> LONG_RUNNING_EXCEPTION: Active for 322 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (data_access_exception)
+
+  6. EXC-0375 (background_check_pending) - CRITICAL
+     Requester: sara.davis | Approver: platform.lead
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-07-16 passed (273 days ago); still marked ACTIVE
+     -> LONG_RUNNING_EXCEPTION: Active for 316 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (background_check_pending)
+
+  7. EXC-0247 (dev_environment_exception) - CRITICAL
+     Requester: data.eng | Approver: it.director
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-07-17 passed (272 days ago); still marked ACTIVE
+     -> LONG_RUNNING_EXCEPTION: Active for 308 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (dev_environment_exception)
+
+  8. EXC-0222 (dev_environment_exception) - CRITICAL
+     Requester: wendy.moore | Approver: it.director
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-08-13 passed (245 days ago); still marked ACTIVE
+     -> LONG_RUNNING_EXCEPTION: Active for 277 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (dev_environment_exception)
+
+  9. EXC-0087 (vendor_access_waiver) - CRITICAL
+     Requester: infra.team | Approver: alice.smith
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-09-09 passed (218 days ago); still marked ACTIVE
+     -> LONG_RUNNING_EXCEPTION: Active for 270 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (vendor_access_waiver)
+
+  10. EXC-0374 (dev_environment_exception) - CRITICAL
+     Requester: sara.chen | Approver: platform.lead
+     -> EXPIRED_ACTIVE_EXCEPTION: End date 2025-09-02 passed (225 days ago); still marked ACTIVE
+     -> CRITICAL_RISK_EXCEPTION: Categorised as CRITICAL risk and currently in force — requires re-review
+     -> LONG_RUNNING_EXCEPTION: Active for 268 days (>180) without renewal — was this meant to be temporary?
+     Recommendation: REVOKE IMMEDIATELY — exception expired but still active (dev_environment_exception)
+
+AUDIT READINESS
+
+  All exceptions documented: 100.0%
+  Approvals recorded: 100.0%
+  Exceptions overdue for review: 245
+  Exceptions not revoked after expiry: 38
+
+RISK ACCUMULATION (3+ active exceptions per person)
+
+  jack.clark: 3 active exceptions
+  infra.team: 19 active exceptions
+  security.ops: 20 active exceptions
+  tom.lee: 3 active exceptions
+  bob.lewis: 3 active exceptions
+  dev.lead: 23 active exceptions
+  olivia.lee: 3 active exceptions
+  bob.clark: 3 active exceptions
+  olivia.patel: 3 active exceptions
+  qa.team: 19 active exceptions
+  grace.patel: 3 active exceptions
+  platform.eng: 24 active exceptions
+  ops.team: 18 active exceptions
+  data.eng: 14 active exceptions
+  henry.brown: 3 active exceptions
+  release.mgmt: 18 active exceptions
+  bob.patel: 5 active exceptions
+  victor.taylor: 3 active exceptions
+  irene.garcia: 3 active exceptions
+  victor.davis: 3 active exceptions
