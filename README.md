@@ -134,4 +134,4 @@ wouldn't catch.
 
 ## Team
 
-Built in 48 hours for [Hackathon Name] by [Team Name].
+Built in 48 hours for Soc-gen Hackathon by defensive drivers.
