@@ -18,6 +18,23 @@ A centralized system for tracking, scoring, and auditing policy exceptions acros
 - Exports audit-ready reports (text summary + flagged-items CSV) in one click
 - Flags risk accumulation — people holding 3+ simultaneous active exceptions
 
+## 📸 Application Screenshots
+### Dashboard GRC
+<img width="1366" height="647" alt="Dashboard GRC" src="https://github.com/user-attachments/assets/7f5a0722-8688-4314-a092-fe5a560f1cd2" />
+
+### Executive Action and Lifecycle
+<img width="1298" height="537" alt="Executive Action and Lifecycle" src="https://github.com/user-attachments/assets/0d19ebdb-73de-4323-b97e-dc217cdf5b5d" />
+
+### Department Exposure Rankings
+<img width="1293" height="557" alt="Department Exposure Rankings" src="https://github.com/user-attachments/assets/f10bb92e-35ab-41f5-a7d4-c1de8111ca08" />
+
+### Priority Remediation Queue and Audit Findings
+<img width="1240" height="610" alt="Priority Remediation Queue and Audit Findings" src="https://github.com/user-attachments/assets/ca91c5f8-53fb-4672-9485-02b658934f41" />
+
+### Enterprise Registry
+<img width="1226" height="526" alt="Enterprise Registry" src="https://github.com/user-attachments/assets/a93eed1e-b130-4f94-a40d-8e2f8aec95a2" />
+
+
 ## Project structure
 
 ```
