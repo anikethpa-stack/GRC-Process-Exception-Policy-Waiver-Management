@@ -1,16 +1,11 @@
 # Exception Registry — GRC Process Exception & Policy Waiver Management
 
-A centralized system for tracking, scoring, and auditing policy exceptions across an
-enterprise — built for the **Policy Governance & Risk Management** hackathon track
-(Option B: Exception Registry & Auditing).
-
-> 30% of security breaches exploit exceptions to policy. This system makes sure no
-> exception is ever "forgotten" again.
+A centralized system for tracking, scoring, and auditing policy exceptions across an enterprise.
 
 ## What it does
 
-- **Centralizes** every policy exception/waiver into one registry (no more email threads or Excel sheets)
-- **Detects 5 categories of risk** automatically using deterministic, auditor-explainable rules:
+- Centralizes every policy exception/waiver into one registry
+- Detects 5 categories of risk automatically:
   | Rule | Trigger | Severity |
   |---|---|---|
   | `EXPIRED_ACTIVE_EXCEPTION` | End date passed, still marked `ACTIVE` | CRITICAL/HIGH |
@@ -18,42 +13,53 @@ enterprise — built for the **Policy Governance & Risk Management** hackathon t
   | `LONG_RUNNING_EXCEPTION` | Active >180 days without renewal | HIGH |
   | `HIGH_RISK_LONG_EXCEPTION` | High-risk type, active >90 days without review | MEDIUM |
   | `STALLED_REVIEW` | Renewal requested, pending >30 days | MEDIUM |
-- **Scores and ranks** every exception so the riskiest items surface first
-- **Visualizes** the portfolio (by type, department, severity) on a live dashboard
-- **Exports** audit-ready reports (text summary + flagged-items CSV) in one click
-- **Flags risk accumulation** — people holding 3+ simultaneous active exceptions
+- Scores and ranks every exception so the riskiest items surface first
+- Visualizes the portfolio (by type, department, severity) on a live dashboard
+- Exports audit-ready reports (text summary + flagged-items CSV) in one click
+- Flags risk accumulation — people holding 3+ simultaneous active exceptions
 
-## Why rule-based, not ML
+## 📸 Application Screenshots
+### Dashboard GRC
+<img width="1366" height="647" alt="Dashboard GRC" src="https://github.com/user-attachments/assets/7f5a0722-8688-4314-a092-fe5a560f1cd2" />
 
-Auditors need to trace every flag back to a specific, defensible rule — "the model said so"
-doesn't satisfy a compliance review. Every flag in this system can be explained in one sentence
-(see `detection_engine.py`), which is the actual deliverable auditors want.
+### Executive Action and Lifecycle
+<img width="1298" height="537" alt="Executive Action and Lifecycle" src="https://github.com/user-attachments/assets/0d19ebdb-73de-4323-b97e-dc217cdf5b5d" />
+
+### Department Exposure Rankings
+<img width="1293" height="557" alt="Department Exposure Rankings" src="https://github.com/user-attachments/assets/f10bb92e-35ab-41f5-a7d4-c1de8111ca08" />
+
+### Priority Remediation Queue and Audit Findings
+<img width="1240" height="610" alt="Priority Remediation Queue and Audit Findings" src="https://github.com/user-attachments/assets/ca91c5f8-53fb-4672-9485-02b658934f41" />
+
+### Enterprise Registry
+<img width="1226" height="526" alt="Enterprise Registry" src="https://github.com/user-attachments/assets/a93eed1e-b130-4f94-a40d-8e2f8aec95a2" />
+
 
 ## Project structure
 
 ```
 grc-exception-tracker/
 ├── data/
-│   ├── exception_registry.csv     # 600 synthetic exception records (full 365-day coverage)
-│   └── exception_labels.csv       # ground-truth anomaly labels for self-evaluation
+│   ├── exception_registry.csv
+│   └── exception_labels.csv
 ├── src/
-│   ├── generate_data.py           # synthetic data generator
-│   ├── models.py                  # SQLAlchemy ORM model (Exception_ table)
-│   ├── db_setup.py                # loads CSV -> SQLite via SQLAlchemy
-│   ├── detection_engine.py        # the 5 anomaly detection rules
-│   ├── risk_scoring.py            # portfolio aggregation + audit readiness stats
-│   ├── self_eval.py               # precision/recall evaluation against ground truth
-│   └── app.py                     # Flask backend + API routes (reads from DB)
+│   ├── generate_data.py
+│   ├── models.py
+│   ├── db_setup.py
+│   ├── detection_engine.py
+│   ├── risk_scoring.py
+│   ├── self_eval.py
+│   └── app.py
 ├── templates/
-│   └── dashboard.html             # dashboard UI
+│   └── dashboard.html
 ├── static/
-│   ├── style.css                  # dark, audit-tool aesthetic
-│   └── dashboard.js               # charts, filters, sortable table, modal
+│   ├── style.css
+│   └── dashboard.js
 ├── docs/
-│   ├── architecture.md            # system architecture + diagram
-│   └── data_dictionary.md         # field-by-field schema reference
+│   ├── architecture.md
+│   └── data_dictionary.md
 ├── reports/
-│   └── sample_audit_report.txt    # example generated output
+│   └── sample_audit_report.txt
 ├── requirements.txt
 └── README.md
 ```
@@ -67,36 +73,24 @@ grc-exception-tracker/
 ### Install & run
 
 ```bash
-# 1. Clone the repo
 git clone https://github.com/<your-username>/grc-exception-tracker.git
 cd grc-exception-tracker
 
-# 2. Create a virtual environment
 python3 -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 
-# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Generate the synthetic dataset (CSV)
 cd src
 python generate_data.py
-
-# 5. Load the CSV into the SQLite database via SQLAlchemy
 python db_setup.py
-
-# 6. Run the self-evaluation (optional, confirms detection engine accuracy)
 python self_eval.py
-
-# 7. Launch the dashboard
 python app.py
 ```
 
 Then open **http://localhost:5000** in your browser.
 
-> **Note:** if you skip step 5, the app still runs — it falls back to reading the
-> CSV directly and prints a warning to the console. Run `db_setup.py` to actually
-> exercise the database-backed path described below.
+If `db_setup.py` is skipped, the app falls back to reading the CSV directly.
 
 ## API routes
 
@@ -116,22 +110,16 @@ cd src
 python self_eval.py
 ```
 
-Outputs a `classification_report` (precision/recall/F1) plus a critical-severity catch rate,
-matching the evaluation pattern specified in the problem statement. Because the detection rules
-and the ground-truth labels are both derived from the same documented logic, this run validates
-**internal consistency** — that the rule engine correctly implements the 5 specified anomaly
-types. The differentiator for judges is in `docs/architecture.md`: how the system handles the
-problem statement's harder **ambiguous scenarios** (e.g. "is this exception still valid if it
-hasn't been renewed in 2 years but isn't technically expired?") that a naive pass/fail check
-wouldn't catch.
+Outputs precision/recall/F1 plus a critical-severity catch rate against ground-truth labels.
 
 ## Compliance framework alignment
 
-- **NIST AC-2** — Account Management: exceptions must not circumvent consistent access controls
-- **NIST PL-4** — Rules of Behavior: exceptions must be documented
-- **GDPR Article 25** — Data Protection by Design: exceptions should be exceptional, tracked, justified
-- **CIS Controls 1.1** — Inventory of IT assets: exceptions are tracked as first-class assets
+- **NIST AC-2** — Account Management
+- **NIST PL-4** — Rules of Behavior
+- **GDPR Article 25** — Data Protection by Design
+- **CIS Controls 1.1** — Inventory of IT assets
 
-## Team
+---
 
-Built in 48 hours for Soc-Gen Hackathon by Defensive Drivers.
+**Hackathon:** Soc-Gen Hackathon
+**Team:** Definsive Drivers
