@@ -1,11 +1,3 @@
-"""
-risk_scoring.py
-----------------
-Portfolio-level aggregation and risk scoring on top of detection_engine's per-exception
-assessments. Produces the summary numbers used by the dashboard and audit reports
-(active count, expiring soon, breakdown by type/department, top high-risk list, etc.)
-"""
-
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
 
@@ -13,16 +5,10 @@ from detection_engine import assess_exception, SEVERITY_RANK
 
 
 def _top_risk_owners(active, key, top_n=5):
-    """
-    Computes top risk owners with rich context:
-    - Cumulative Risk Score
-    - Critical Exceptions Count
-    - High Exceptions Count
-    """
     grouped = defaultdict(list)
     for r in active:
         grouped[r[key]].append(r)
-        
+
     results = []
     for name, records in grouped.items():
         cumulative_score = sum(r.get("computed_risk_score", 0) for r in records)
@@ -30,47 +16,37 @@ def _top_risk_owners(active, key, top_n=5):
         high_count = sum(1 for r in records if r.get("computed_severity") == "HIGH")
         results.append({
             "name": name,
-            "score": cumulative_score,  # Sort key
+            "score": cumulative_score,
             "cumulative_score": cumulative_score,
             "critical_count": critical_count,
             "high_count": high_count,
         })
-        
+
     results.sort(key=lambda x: x["cumulative_score"], reverse=True)
     return results[:top_n]
 
 
 def _calculate_policy_debt_score(expired_active, overdue_reviews, critical_active, long_running):
-    """
-    Calculates a Policy Debt Score out of 100 based on active risk contributors.
-    Weights are:
-      - Expired active exceptions: count * 0.84
-      - Overdue reviews: count * 0.116
-      - Critical active: count * 0.43
-      - Long running: count * 0.037
-    Returns (final_score, contribution_pcts)
-    """
     c_expired = expired_active * 0.84
     c_overdue = overdue_reviews * 0.116
     c_critical = critical_active * 0.43
     c_long = long_running * 0.037
-    
+
     score = c_expired + c_overdue + c_critical + c_long
     final_score = min(100, max(0, round(score)))
-    
+
     total = c_expired + c_overdue + c_critical + c_long
     if total > 0:
         p_expired = round((c_expired / total) * 100)
         p_overdue = round((c_overdue / total) * 100)
         p_critical = round((c_critical / total) * 100)
         p_long = round((c_long / total) * 100)
-        
-        # Ensure sum is exactly 100%
+
         diff = 100 - (p_expired + p_overdue + p_critical + p_long)
         p_expired += diff
     else:
         p_expired, p_overdue, p_critical, p_long = 0, 0, 0, 0
-        
+
     return final_score, p_expired, p_overdue, p_critical, p_long
 
 
@@ -86,25 +62,19 @@ def _audit_exposure_level(score):
 
 def _build_recommended_actions(enriched_records, today):
     actions = []
-    
-    # 1. Expired active exceptions
+
     expired_active = [r for r in enriched_records if r["status"] == "ACTIVE" and datetime.strptime(r["end_date"], "%Y-%m-%d") < today]
     if expired_active:
         actions.append(f"Revoke {len(expired_active)} expired exceptions")
-        
-    # 2. Overdue reviews
-    # Review is overdue if it has STALLED_REVIEW, HIGH_RISK_LONG_EXCEPTION, or LONG_RUNNING_EXCEPTION alerts.
+
     overdue_reviews = [r for r in enriched_records if any(a.split(":")[0] in ("STALLED_REVIEW", "HIGH_RISK_LONG_EXCEPTION", "LONG_RUNNING_EXCEPTION") for a in r["alerts"])]
     if overdue_reviews:
         actions.append(f"Review {len(overdue_reviews)} overdue exceptions")
-        
-    # 3. Escalate long-running vendor waivers
+
     long_running_vendor = [r for r in enriched_records if r["type"] == "vendor_access_waiver" and any(a.split(":")[0] == "LONG_RUNNING_EXCEPTION" for a in r["alerts"])]
     if long_running_vendor:
         actions.append("Escalate long-running vendor waivers")
-        
-    # 4. Review top department risks
-    # Compute department risk scores dynamically
+
     active = [r for r in enriched_records if r["status"] == "ACTIVE"]
     dept_scores = Counter()
     for r in active:
@@ -112,17 +82,14 @@ def _build_recommended_actions(enriched_records, today):
     if dept_scores:
         top_dept = dept_scores.most_common(1)[0][0]
         actions.append(f"Review {top_dept} department risks")
-        
+
     if not actions:
         actions.append("No immediate remediation actions detected.")
-        
+
     return actions
 
 
 def _build_lifecycle_timeline(record: dict, today: datetime) -> list:
-    """
-    Builds the timeline step history: Created -> Approved -> Review Due -> Expired -> Current State
-    """
     timeline = []
     start_date = datetime.strptime(record["start_date"], "%Y-%m-%d")
     end_date = datetime.strptime(record["end_date"], "%Y-%m-%d")
@@ -130,13 +97,12 @@ def _build_lifecycle_timeline(record: dict, today: datetime) -> list:
     timeline.append({"title": "Created", "date": record["start_date"]})
     if record.get("approver"):
         timeline.append({"title": "Approved", "date": record["start_date"]})
-        
+
     timeline.append({"title": "Review Due", "date": record["end_date"]})
 
     if end_date < today:
         timeline.append({"title": "Expired", "date": record["end_date"]})
 
-    # Current State representation
     status_label = record["status"]
     if status_label == "ACTIVE":
         if end_date < today:
@@ -159,7 +125,6 @@ def _build_lifecycle_timeline(record: dict, today: datetime) -> list:
 
 
 def load_registry_with_assessments(records: list, today: datetime):
-    """Attach a computed assessment to every record; returns list of dicts merged together."""
     enriched = []
     for r in records:
         assessment = assess_exception(r, today)
@@ -171,7 +136,7 @@ def load_registry_with_assessments(records: list, today: datetime):
         merged["alerts"] = assessment.alerts
         merged["is_flagged"] = assessment.is_flagged
         merged["recommendation"] = assessment.recommendation
-        merged["primary_severity"] = assessment.computed_severity  # Override ground truth for platform UI!
+        merged["primary_severity"] = assessment.computed_severity
         merged["lifecycle_timeline"] = _build_lifecycle_timeline(r, today)
         enriched.append(merged)
     return enriched
@@ -195,7 +160,6 @@ def portfolio_summary(enriched_records: list, today: datetime) -> dict:
     type_counts = Counter(r["type"] for r in active)
     dept_counts = Counter(r["department"] for r in active)
 
-    # Top high-risk exceptions: sorted by computed risk score, then age
     flagged = [r for r in enriched_records if r["is_flagged"]]
     flagged.sort(
         key=lambda r: (
@@ -206,13 +170,11 @@ def portfolio_summary(enriched_records: list, today: datetime) -> dict:
     )
     top_high_risk = flagged[:10]
 
-    # Renewal rate
     re_approved = sum(1 for r in enriched_records if r["status"] == "RE-APPROVED")
     revoked = sum(1 for r in enriched_records if r["status"] == "REVOKED")
     terminal_total = re_approved + revoked
     renewal_rate = round((re_approved / terminal_total) * 100, 1) if terminal_total else None
 
-    # Requester concentration
     requester_counts = Counter(r["requester"] for r in active)
     multi_exception_people = {k: v for k, v in requester_counts.items() if v >= 3}
     overlapping_exceptions = {}
@@ -234,19 +196,17 @@ def portfolio_summary(enriched_records: list, today: datetime) -> dict:
     )
     missing_approvals_count = sum(1 for r in active if not r.get("approver"))
 
-    # Overdue Reviews count (total overdue reviews in GRC platform)
     overdue_reviews_count = sum(
         1 for r in enriched_records
         if any(a.startswith("STALLED_REVIEW") or a.startswith("HIGH_RISK_LONG") or a.startswith("LONG_RUNNING")
                for a in r["alerts"])
     )
 
-    # Risk Evolution bucket calculations
-    new_count = 0        # <= 30 days
-    aging_count = 0      # 31 - 90 days
-    long_running_count = 0 # 91 - 180 days
-    chronic_count = 0    # > 180 days
-    
+    new_count = 0
+    aging_count = 0
+    long_running_count = 0
+    chronic_count = 0
+
     for r in active:
         start_date = datetime.strptime(r["start_date"], "%Y-%m-%d")
         age_days = (today - start_date).days
@@ -259,7 +219,6 @@ def portfolio_summary(enriched_records: list, today: datetime) -> dict:
         else:
             chronic_count += 1
 
-    # Policy Debt & Audit Exposure Scores
     policy_debt_score, p_expired, p_overdue, p_critical, p_long = _calculate_policy_debt_score(
         len(expired_not_revoked),
         overdue_reviews_count,
@@ -283,8 +242,7 @@ def portfolio_summary(enriched_records: list, today: datetime) -> dict:
         "overlapping_exceptions": overlapping_exceptions,
         "total_flagged": len(flagged),
         "total_records": len(enriched_records),
-        
-        # Policy Debt concepts
+
         "policy_debt_score": policy_debt_score,
         "policy_debt_contributors": {
             "expired_active": len(expired_not_revoked),
@@ -292,8 +250,7 @@ def portfolio_summary(enriched_records: list, today: datetime) -> dict:
             "long_running": long_running_count,
             "critical_active": critical_count,
         },
-        
-        # Audit Exposure & Drivers
+
         "audit_exposure_score": policy_debt_score,
         "audit_exposure": audit_exposure_level,
         "audit_exposure_drivers": [
@@ -302,8 +259,7 @@ def portfolio_summary(enriched_records: list, today: datetime) -> dict:
             {"label": "Critical Exceptions", "count": critical_count, "pct": p_critical},
             {"label": "Long Running Exceptions", "count": long_running_count, "pct": p_long},
         ],
-        
-        # Risk Evolution aging details
+
         "risk_evolution": {
             "new_count": new_count,
             "aging_count": aging_count,
@@ -312,14 +268,14 @@ def portfolio_summary(enriched_records: list, today: datetime) -> dict:
             "expired_active_count": len(expired_not_revoked),
             "aged_beyond_90": long_running_count + chronic_count,
         },
-        
+
         "overdue_reviews": overdue_reviews_count,
-        
+
         "recommended_actions": _build_recommended_actions(enriched_records, today),
         "top_risk_requesters": _top_risk_owners(active, "requester"),
         "top_risk_approvers": _top_risk_owners(active, "approver"),
         "top_risk_departments": _top_risk_owners(active, "department"),
-        
+
         "audit_findings": {
             "expired_active": len(expired_not_revoked),
             "stalled_reviews": stalled_review_count,

@@ -1,14 +1,3 @@
-"""
-self_eval.py
--------------
-Evaluates the detection engine against the ground-truth labels, using a pure-Python
-implementation of metrics (precision, recall, classification report) to ensure compatibility
-across environments (e.g. Python 3.14 without compilers installed).
-
-Run:
-    python self_eval.py
-"""
-
 import csv
 import os
 from datetime import datetime
@@ -16,7 +5,7 @@ from datetime import datetime
 from detection_engine import assess_exception
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
-TODAY = datetime(2026, 4, 15)  # must match generate_data.py's TODAY
+TODAY = datetime(2026, 4, 15)
 
 
 def load_csv(path):
@@ -25,9 +14,6 @@ def load_csv(path):
 
 
 def classification_report_pure(y_true, y_pred, target_names):
-    """
-    Pure-Python equivalent of sklearn.metrics.classification_report.
-    """
     classes = [0, 1]
     precision = {}
     recall = {}
@@ -53,18 +39,15 @@ def classification_report_pure(y_true, y_pred, target_names):
 
     lines.append("")
 
-    # accuracy
     acc = sum(1 for yt, yp in zip(y_true, y_pred) if yt == yp) / len(y_true)
     total_support = len(y_true)
     lines.append(f"{'accuracy':<25} {'':>10} {'':>10} {acc:>10.2f} {total_support:>10}")
 
-    # macro avg
     macro_prec = sum(precision.values()) / len(classes)
     macro_rec = sum(recall.values()) / len(classes)
     macro_f1 = sum(f1.values()) / len(classes)
     lines.append(f"{'macro avg':<25} {macro_prec:>10.2f} {macro_rec:>10.2f} {macro_f1:>10.2f} {total_support:>10}")
 
-    # weighted avg
     weighted_prec = sum(precision[c] * support[c] for c in classes) / total_support
     weighted_rec = sum(recall[c] * support[c] for c in classes) / total_support
     weighted_f1 = sum(f1[c] * support[c] for c in classes) / total_support
@@ -112,7 +95,6 @@ def main():
     print(f"Overall Recall:    {recall_score_pure(y_true, y_pred):.2%}")
     print()
 
-    # Critical-severity catch rate (most important number for auditors)
     critical_indices = [i for i, sev in enumerate(severity_true) if sev == "CRITICAL"]
     if critical_indices:
         caught = sum(1 for i in critical_indices if y_pred[i] == 1)
@@ -131,4 +113,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

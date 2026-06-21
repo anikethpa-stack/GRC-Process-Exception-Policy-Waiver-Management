@@ -1,21 +1,3 @@
-"""
-db_setup.py
-------------
-Creates the SQLite database and loads exception_registry.csv into it via the
-SQLAlchemy ORM models defined in models.py.
-
-Run this once after generate_data.py (or any time you want to rebuild the DB
-from the CSV — e.g. after dropping in the hackathon's real sample_data files):
-
-    python db_setup.py
-
-This separates "where the data lives" (CSV, the portable/shareable format) from
-"what the app queries" (SQLite, via SQLAlchemy) — matching the doc's Option B
-stack (Python, PostgreSQL/SQLAlchemy ORM) while staying zero-setup for a 48-hour
-hackathon. Swapping to real PostgreSQL later only requires changing the
-connection string in models.get_engine().
-"""
-
 import csv
 import os
 
@@ -43,7 +25,6 @@ def main():
     init_db(engine)
     session = get_session(engine)
 
-    # Clear existing rows so re-running this script is idempotent (safe to repeat)
     session.query(Exception_).delete()
     session.commit()
 

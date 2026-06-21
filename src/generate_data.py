@@ -1,22 +1,3 @@
-"""
-generate_data.py
------------------
-Generates synthetic GRC policy exception data matching the hackathon problem statement:
-  - exception_registry.csv  (600 records, full 365-day coverage)
-  - exception_labels.csv    (600 records, ground-truth anomaly labels, ~37% anomalous)
-
-Anomaly types (from problem doc) and severities:
-  EXPIRED_ACTIVE_EXCEPTION    expiry passed but still marked Active     CRITICAL/HIGH
-  CRITICAL_RISK_EXCEPTION     categorised as Critical risk, needs re-review   HIGH
-  LONG_RUNNING_EXCEPTION      ran >180 days without renewal              HIGH
-  HIGH_RISK_LONG_EXCEPTION    high-risk, active >90 days without review  MEDIUM
-  STALLED_REVIEW              pending review for >30 days                MEDIUM
-
-Run:
-    python generate_data.py
-Outputs into ../data/
-"""
-
 import csv
 import random
 from datetime import datetime, timedelta
@@ -25,10 +6,10 @@ from collections import Counter
 
 random.seed(42)
 
-# "Today" anchors the dataset so expiry/age math is reproducible across runs and demos.
+
 TODAY = datetime(2026, 4, 15)
 
-# Dataset spans the full 365 days leading up to TODAY, per the doc's "full year coverage" note.
+
 DATASET_START = TODAY - timedelta(days=365)
 
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -97,11 +78,6 @@ def make_justification(vague_chance=0.35):
 
 
 def generate_exception(idx, scenario):
-    """
-    scenario in:
-      'clean_active', 'clean_expired_revoked', 'expired_active',
-      'critical_needs_review', 'long_running', 'high_risk_long', 'stalled_review'
-    """
     eid = f"EXC-{idx:04d}"
     etype = random.choice(list(EXCEPTION_TYPES.keys()))
     base_risk = EXCEPTION_TYPES[etype]
@@ -115,12 +91,12 @@ def generate_exception(idx, scenario):
     review_requested_date = None
 
     if scenario == "clean_active":
-        # short, recent, well within its window, not yet near expiry
+
         start_date = random_date(DATASET_START + timedelta(days=200), TODAY - timedelta(days=5))
         duration = random.choice([
-            random.randint(14, 30),    # short-window exceptions (some legitimately expiring soon)
-            random.randint(31, 90),    # medium window
-            random.randint(91, 180),   # longer-running but still healthy
+            random.randint(14, 30),
+            random.randint(31, 90),
+            random.randint(91, 180),
         ])
         end_date = start_date + timedelta(days=duration)
         if end_date < TODAY:
@@ -129,14 +105,14 @@ def generate_exception(idx, scenario):
         justification = make_justification(vague_chance=0.15)
 
     elif scenario == "clean_expired_revoked":
-        # properly closed out lifecycle - expired AND revoked, no issue
+
         start_date = random_date(DATASET_START, TODAY - timedelta(days=60))
         duration = random.randint(14, 90)
         end_date = start_date + timedelta(days=duration)
         status = random.choice(["EXPIRED", "REVOKED"])
 
     elif scenario == "expired_active":
-        # CRITICAL/HIGH: end_date passed but status still ACTIVE
+
         start_date = random_date(DATASET_START, TODAY - timedelta(days=30))
         duration = random.randint(10, 60)
         end_date = start_date + timedelta(days=duration)
@@ -146,7 +122,7 @@ def generate_exception(idx, scenario):
         risk_level = random.choice(["HIGH", "CRITICAL"])
 
     elif scenario == "critical_needs_review":
-        # HIGH: categorised Critical risk, needs re-review (still within window or just active)
+
         start_date = random_date(DATASET_START + timedelta(days=100), TODAY - timedelta(days=20))
         duration = random.randint(60, 200)
         end_date = start_date + timedelta(days=duration)
@@ -156,7 +132,7 @@ def generate_exception(idx, scenario):
         risk_level = "CRITICAL"
 
     elif scenario == "long_running":
-        # HIGH: ran >180 days without renewal, still active
+
         start_date = random_date(DATASET_START, TODAY - timedelta(days=185))
         duration = random.randint(200, 500)
         end_date = start_date + timedelta(days=duration)
@@ -167,7 +143,7 @@ def generate_exception(idx, scenario):
         justification = make_justification(vague_chance=0.5)
 
     elif scenario == "high_risk_long":
-        # MEDIUM: high-risk type, active >90 days without review
+
         etype = random.choice(["admin_access", "encryption_waiver", "data_access_exception", "vendor_access_waiver"])
         risk_level = "HIGH"
         start_date = random_date(DATASET_START, TODAY - timedelta(days=95))
@@ -178,7 +154,7 @@ def generate_exception(idx, scenario):
         status = "ACTIVE"
 
     elif scenario == "stalled_review":
-        # MEDIUM: pending review for >30 days
+
         start_date = random_date(DATASET_START + timedelta(days=150), TODAY - timedelta(days=35))
         duration = random.randint(30, 120)
         end_date = start_date + timedelta(days=duration)
@@ -208,31 +184,25 @@ def generate_exception(idx, scenario):
 
 
 def build_labels(record, scenario):
-    """Returns list of (anomaly_type, severity) tuples applicable to this record."""
     flags = []
     end_date = datetime.strptime(record["end_date"], "%Y-%m-%d")
     start_date = datetime.strptime(record["start_date"], "%Y-%m-%d")
     age_days = (TODAY - start_date).days
     days_since_expiry = (TODAY - end_date).days
 
-    # EXPIRED_ACTIVE_EXCEPTION: expiry passed but still marked Active
     if record["status"] == "ACTIVE" and end_date < TODAY:
         severity = "CRITICAL" if record["risk_level"] in ("HIGH", "CRITICAL") else "HIGH"
         flags.append(("EXPIRED_ACTIVE_EXCEPTION", severity))
 
-    # CRITICAL_RISK_EXCEPTION: categorised Critical, needs re-review
     if record["risk_level"] == "CRITICAL" and record["status"] in ("ACTIVE", "RENEWAL_REQUESTED"):
         flags.append(("CRITICAL_RISK_EXCEPTION", "HIGH"))
 
-    # LONG_RUNNING_EXCEPTION: ran >180 days without renewal
     if record["status"] == "ACTIVE" and age_days > 180:
         flags.append(("LONG_RUNNING_EXCEPTION", "HIGH"))
 
-    # HIGH_RISK_LONG_EXCEPTION: high-risk, active >90 days without review
     if record["status"] == "ACTIVE" and record["risk_level"] == "HIGH" and age_days > 90 and age_days <= 180:
         flags.append(("HIGH_RISK_LONG_EXCEPTION", "MEDIUM"))
 
-    # STALLED_REVIEW: pending review for >30 days
     if record["status"] == "RENEWAL_REQUESTED" and record["review_requested_date"]:
         review_date = datetime.strptime(record["review_requested_date"], "%Y-%m-%d")
         if (TODAY - review_date).days > 30:
@@ -244,7 +214,6 @@ def build_labels(record, scenario):
 def main():
     n_total = 600
 
-    # Target ~37% anomalous (~222 records), rest clean across realistic lifecycle states.
     scenario_pool = (
         ["expired_active"] * 38 +
         ["critical_needs_review"] * 34 +

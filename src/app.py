@@ -1,21 +1,3 @@
-"""
-app.py
--------
-Flask backend for the GRC Exception & Policy Waiver Management dashboard.
-
-Routes:
-  GET  /                      -> dashboard UI
-  GET  /api/exceptions        -> all exceptions with computed risk/alerts (JSON)
-  GET  /api/summary           -> portfolio summary (JSON)
-  GET  /api/audit-readiness   -> audit readiness stats (JSON)
-  GET  /api/report/audit      -> downloadable audit report (text)
-  GET  /api/report/csv        -> downloadable flagged-exceptions CSV
-
-Run:
-    python app.py
-Then open http://localhost:5000
-"""
-
 import csv
 import io
 import os
@@ -30,7 +12,7 @@ APP_DIR = os.path.dirname(__file__)
 DATA_DIR = os.path.join(APP_DIR, "..", "data")
 DB_PATH = os.path.join(DATA_DIR, "exceptions.db")
 CSV_PATH = os.path.join(DATA_DIR, "exception_registry.csv")
-TODAY = datetime(2026, 4, 15)  # fixed "report date" — matches generator; change for live demo if desired
+TODAY = datetime(2026, 6, 21)
 
 app = Flask(
     __name__,
@@ -42,15 +24,6 @@ _engine = get_engine(f"sqlite:///{DB_PATH}")
 
 
 def _load_registry():
-    """
-    Primary path: read from the SQLite DB via SQLAlchemy (matches the doc's
-    Option B stack: Python, PostgreSQL/SQLAlchemy ORM).
-
-    Fallback: if db_setup.py hasn't been run yet (no .db file present), fall
-    back to reading the CSV directly so the app still works out of the box
-    for anyone who skips that step — but prints a warning so it's obvious
-    the DB path isn't being exercised.
-    """
     if os.path.exists(DB_PATH):
         session = get_session(_engine)
         try:

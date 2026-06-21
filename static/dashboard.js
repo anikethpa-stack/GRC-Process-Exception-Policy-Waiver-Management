@@ -323,7 +323,7 @@ function renderRiskEvolution(summary) {
   
   const interpretation = document.getElementById('evolution-interpretation');
   interpretation.innerHTML = `
-    <p class="interpretation-text">💡 <strong>Executive Analysis:</strong> ${ev.aged_beyond_90} exceptions have aged beyond 90 days, indicating temporary waivers are evolving into persistent organizational risk.</p>
+    <p class="interpretation-text"><strong>Executive Analysis:</strong> ${ev.aged_beyond_90} exceptions have aged beyond 90 days, indicating temporary waivers are evolving into persistent organizational risk.</p>
   `;
   
   // Attach segment click events
@@ -683,7 +683,7 @@ function openModal(r) {
           <div class="drivers-checkmark-list">
             ${Array.isArray(r.risk_breakdown) && r.risk_breakdown.length ? r.risk_breakdown.map(item => `
               <div class="driver-check-item">
-                <span class="check-icon">✓</span>
+                <span class="check-icon">*</span>
                 <span class="driver-label-text">${item.label}</span>
                 <span class="driver-weight-badge">+${item.weight}</span>
               </div>
