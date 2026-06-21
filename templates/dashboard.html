@@ -14,12 +14,13 @@
   <div class="topbar-left">
     <span class="brand-mark">§</span>
     <div>
-      <h1>Exception Registry</h1>
-      <p class="subtitle">Policy Waiver &amp; GRC Process Exception Management</p>
+      <h1>GRC Exception Risk Intelligence</h1>
+      <p class="subtitle">Policy Waiver &amp; Governance Visibility Platform</p>
     </div>
   </div>
   <div class="topbar-right">
     <span id="report-date" class="report-date">—</span>
+    <button id="audit-mode-toggle" class="btn btn-audit-mode">Audit mode</button>
     <button id="export-csv" class="btn btn-ghost">Export flagged CSV</button>
     <button id="export-audit" class="btn btn-primary">Generate audit report</button>
   </div>
@@ -31,35 +32,156 @@
   <div class="pulse-legend" id="pulse-legend"></div>
 </div>
 
+<!-- Top alert banner for Audit Mode -->
+<div id="audit-banner" class="audit-banner hidden">
+  <span class="warning-icon">⚠️</span>
+  <span><strong>AUDIT COMPLIANCE VIEW ACTIVE:</strong> Filtering exceptions to records with active risk flags, stalled reviews, critical severity, or missing approvals.</span>
+</div>
+
 <main>
-  <section class="kpi-row" id="kpi-row">
-    <!-- populated by JS -->
+  <!-- 1. Executive Alert Banner -->
+  <div id="executive-alert-banner" class="executive-alert-banner">
+    <span class="banner-icon">⚠</span>
+    <div class="banner-text">
+      <strong><span id="banner-expired-count">—</span> expired exceptions remain active and <span id="banner-overdue-count">—</span> reviews are overdue.</strong>
+      <span class="banner-subtext">These temporary exceptions have evolved into organizational risk.</span>
+    </div>
+  </div>
+
+  <!-- 2. Executive KPI Row (Merged Policy Debt & Audit Exposure) -->
+  <section class="executive-kpi-row">
+    <!-- Policy Debt Score Card (Visually dominant primary card) -->
+    <div class="panel bento-card policy-debt-card">
+      <div class="card-head">
+        <h2>Policy Debt Score</h2>
+        <span class="card-note">Overall accumulated GRC risk posture</span>
+      </div>
+      <div class="policy-debt-score-wrap">
+        <div class="debt-score-display">
+          <span id="debt-score-value">—</span>
+          <span class="score-denominator">/100</span>
+        </div>
+        <div class="debt-badge-wrap">
+          <div class="debt-badge" id="debt-badge">CRITICAL</div>
+        </div>
+      </div>
+      <div class="policy-debt-drivers">
+        <div class="driver-item">
+          <span class="driver-val" id="driver-expired-val">—</span>
+          <span class="driver-label">Expired Active</span>
+        </div>
+        <div class="driver-item">
+          <span class="driver-val" id="driver-overdue-val">—</span>
+          <span class="driver-label">Overdue Reviews</span>
+        </div>
+        <div class="driver-item">
+          <span class="driver-val" id="driver-long-val">—</span>
+          <span class="driver-label">Long Running</span>
+        </div>
+        <div class="driver-item">
+          <span class="driver-val" id="driver-critical-val">—</span>
+          <span class="driver-label">Critical Exceptions</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right side: Three smaller supporting cards -->
+    <div class="supporting-kpi-grid">
+      <div class="panel bento-card kpi-card">
+        <span class="kpi-label">Expired Active Exceptions</span>
+        <strong class="kpi-val critical" id="kpi-expired">—</strong>
+        <span class="kpi-note">Orphaned access risk</span>
+      </div>
+      <div class="panel bento-card kpi-card">
+        <span class="kpi-label">Overdue Reviews</span>
+        <strong class="kpi-val high" id="kpi-overdue">—</strong>
+        <span class="kpi-note">Pending review backlog</span>
+      </div>
+      <div class="panel bento-card kpi-card">
+        <span class="kpi-label">Expiring Within 30 Days</span>
+        <strong class="kpi-val accent" id="kpi-expiring">—</strong>
+        <span class="kpi-note">Requires renewal review</span>
+      </div>
+    </div>
   </section>
 
-  <section class="grid-two">
-    <div class="panel">
-      <div class="panel-head">
-        <h2>By exception type</h2>
-      </div>
-      <div id="chart-type" class="chart-mount"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head">
-        <h2>By department</h2>
-      </div>
-      <div id="chart-dept" class="chart-mount"></div>
-    </div>
-  </section>
-
-  <section class="panel">
+  <!-- 3. Recommended Actions -->
+  <section class="panel bento-panel recommended-actions-section">
     <div class="panel-head">
-      <h2>Top high-risk exceptions</h2>
-      <span class="panel-note">Sorted by severity, then age</span>
+      <h2>Recommended actions</h2>
+      <span class="panel-note">Prioritized next steps to reduce policy debt</span>
     </div>
-    <div id="top-risk-list" class="top-risk-list"></div>
+    <div id="recommended-actions-grid" class="actions-bento-grid">
+      <!-- Populated by JS as Bento cards -->
+    </div>
   </section>
 
-  <section class="panel">
+  <!-- 4. Risk Evolution -->
+  <section class="panel bento-panel risk-evolution-section">
+    <div class="panel-head">
+      <h2>Risk Evolution</h2>
+      <span class="panel-note">Visualizing exception aging from short-term accommodations to permanent risk. Click an aging bucket to filter dashboard view.</span>
+    </div>
+    
+    <div class="filter-indicator-wrap hidden" id="filter-indicator-wrap">
+      <span>Viewing: <strong id="active-filter-label">—</strong></span>
+      <button class="btn-reset-filter" id="btn-reset-filter">Reset View</button>
+    </div>
+
+    <div class="evolution-visual-wrap">
+      <div class="stacked-bar-container">
+        <div class="evolution-stacked-bar" id="evolution-stacked-bar"></div>
+        <div class="stacked-bar-legend" id="stacked-bar-legend"></div>
+      </div>
+    </div>
+    <div class="evolution-interpretation" id="evolution-interpretation">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- 5. Risk Concentration -->
+  <section class="panel bento-panel risk-concentration-section">
+    <div class="panel-head">
+      <h2>Risk concentration</h2>
+      <span class="panel-note">Cumulative risk aggregation by owner, department, and approver</span>
+    </div>
+    <div id="risk-concentration" class="concentration-grids"></div>
+  </section>
+
+  <!-- 6. Priority Remediation Queue -->
+  <section class="panel bento-panel priority-queue-section">
+    <div class="panel-head">
+      <h2>Priority Remediation Queue</h2>
+      <span class="panel-note">Top 5 Critical Exceptions requiring immediate remediation</span>
+    </div>
+    <div id="priority-queue-list" class="priority-queue-list">
+      <!-- Populated by JS -->
+    </div>
+    <div class="queue-footer">
+      <button class="btn btn-ghost" id="btn-view-all-critical">View All Critical Exceptions</button>
+    </div>
+  </section>
+
+  <!-- 7. Audit Findings & Readiness -->
+  <section class="grid-two" id="audit-readiness-section">
+    <div class="panel bento-card">
+      <div class="panel-head">
+        <h2>Audit findings</h2>
+        <span class="panel-note">Focused compliance issues for immediate review</span>
+      </div>
+      <div id="audit-findings" class="audit-findings-grid"></div>
+    </div>
+    <div class="panel bento-card">
+      <div class="panel-head">
+        <h2>Audit readiness</h2>
+        <span class="panel-note">Documentation and approvals KPIs</span>
+      </div>
+      <div class="readiness-grid" id="readiness-grid"></div>
+    </div>
+  </section>
+
+  <!-- 8. Exception Ledger -->
+  <section class="panel bento-panel" id="ledger-panel">
     <div class="panel-head">
       <h2>Exception ledger</h2>
       <div class="filters">
@@ -102,11 +224,44 @@
     <p id="row-count" class="row-count"></p>
   </section>
 
-  <section class="panel" id="audit-readiness-panel">
-    <div class="panel-head">
-      <h2>Audit readiness</h2>
+  <!-- 9. Methodology Drawer -->
+  <section class="panel methodology-panel">
+    <button class="methodology-toggle" id="methodology-toggle">
+      <span>Methodology &amp; Risk Weight Justifications</span>
+      <span class="toggle-icon">▼</span>
+    </button>
+    <div class="methodology-content hidden" id="methodology-content">
+      <p class="methodology-intro">"The scoring model represents relative business impact, privilege exposure, compliance exposure, and audit concern." Every exception's risk score is calculated deterministically as follows:</p>
+      <div class="methodology-grid">
+        <div class="methodology-col">
+          <h3>Exception Type Weights</h3>
+          <ul>
+            <li><strong>Admin Access (40)</strong>: Highest privilege exposure (super-user access)</li>
+            <li><strong>Firewall Rule Open (35)</strong>: High network exposure (ingress ports open to internet)</li>
+            <li><strong>Vendor Access Waiver (30)</strong>: Third-party risk (external supply chain dependencies)</li>
+            <li><strong>Data Access Exception (30)</strong>: Data protection risk (exposure of sensitive tables)</li>
+            <li><strong>Encryption Waiver (25)</strong>: Cryptographic exposure (unencrypted storage/transit)</li>
+            <li><strong>Background Check Pending (15)</strong>: Personnel compliance risk (unscreened staff)</li>
+            <li><strong>Dev Environment Exception (10)</strong>: Non-production environment config exposure</li>
+          </ul>
+        </div>
+        <div class="methodology-col">
+          <h3>Status &amp; Delay Modifiers</h3>
+          <ul>
+            <li><strong>Still Active Status (+20)</strong>: Represents active, ongoing risk exposure</li>
+            <li><strong>Expired Status / Dates (+30)</strong>: Failure to revoke or review access beyond the waiver term</li>
+            <li><strong>Review Overdue</strong>:
+              <ul>
+                <li>&gt; 30 days: <strong>+10</strong></li>
+                <li>&gt; 90 days: <strong>+20</strong></li>
+                <li>&gt; 180 days: <strong>+30</strong></li>
+              </ul>
+            </li>
+            <li><strong>Review Stalled (+20)</strong>: Pending renewal request for &gt; 30 days without action</li>
+          </ul>
+        </div>
+      </div>
     </div>
-    <div class="readiness-grid" id="readiness-grid"></div>
   </section>
 </main>
 
