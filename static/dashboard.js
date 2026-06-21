@@ -1,9 +1,9 @@
 const SEVERITY_COLORS = {
-  CRITICAL: '#E5484D',
-  HIGH: '#F5A623',
-  MEDIUM: '#5B8DEF',
-  LOW: '#3FB950',
-  NONE: '#3A4452',
+  CRITICAL: 'var(--critical)',
+  HIGH: 'var(--high)',
+  MEDIUM: 'var(--medium)',
+  LOW: 'var(--low)',
+  NONE: 'var(--none)',
 };
 
 let ALL_EXCEPTIONS = [];
@@ -231,35 +231,48 @@ function renderRecommendedActions(actions) {
   container.innerHTML = '';
   
   actions.forEach((action) => {
-    let emoji = '⚡';
     let title = action;
-    let desc = 'Prioritized remediation task.';
+    let impact = 'Reduces accumulated policy deviation';
+    let priority = 'Low';
+    let reduction = '-2 Policy Debt Score';
     
     if (action.includes('Revoke')) {
-      emoji = '🔥';
-      title = `Revoke ${action.match(/\d+/)[0]} Expired Exceptions`;
-      desc = 'Highest-priority remediation item.';
+      const match = action.match(/\d+/);
+      const count = match ? match[0] : '';
+      title = `Revoke ${count} Expired Exceptions`;
+      impact = 'Eliminates orphaned access exposure';
+      priority = 'Critical';
+      reduction = '-12 Policy Debt Score';
     } else if (action.includes('Review') && action.includes('Overdue')) {
-      emoji = '⚠';
-      title = `Review ${action.match(/\d+/)[0]} Overdue Exceptions`;
-      desc = 'Review backlog is increasing policy debt.';
+      const match = action.match(/\d+/);
+      const count = match ? match[0] : '';
+      title = `Review ${count} Overdue Exceptions`;
+      impact = 'Clears compliance review backlog';
+      priority = 'High';
+      reduction = '-8 Policy Debt Score';
     } else if (action.includes('Department') || action.includes('Risk')) {
-      emoji = '🏢';
       title = action;
-      desc = 'Highest cumulative risk owner.';
+      impact = 'Reduces department exposure concentration';
+      priority = 'Medium';
+      reduction = '-5 Policy Debt Score';
     } else if (action.includes('Vendor')) {
-      emoji = '🔒';
-      title = action;
-      desc = 'Potential third-party risk accumulation.';
+      title = 'Escalate Long Running Vendor Waivers';
+      impact = 'Mitigates supply chain compliance gaps';
+      priority = 'Medium';
+      reduction = '-4 Policy Debt Score';
     }
     
     const card = document.createElement('div');
     card.className = 'bento-action-card';
     card.innerHTML = `
-      <div class="action-card-icon">${emoji}</div>
-      <div class="action-card-content">
-        <h4>${title}</h4>
-        <p>${desc}</p>
+      <div class="action-card-header">
+        <span class="action-badge">NEXT BEST ACTION</span>
+        <span class="action-priority priority-${priority.toLowerCase()}">${priority}</span>
+      </div>
+      <div class="action-card-title">${title}</div>
+      <div class="action-card-body">
+        <div class="action-meta-item"><span>Business Impact</span> <strong>${impact}</strong></div>
+        <div class="action-meta-item"><span>Expected Reduction</span> <strong class="reduction-text">${reduction}</strong></div>
       </div>
     `;
     
@@ -294,18 +307,18 @@ function renderRiskEvolution(summary) {
   
   const bar = document.getElementById('evolution-stacked-bar');
   bar.innerHTML = `
-    <div class="evol-seg seg-new ${ACTIVE_EVOLUTION_BUCKET === 'new' ? 'active-segment' : ''}" style="width: ${pctNew}%; background: #6FE3C4;" title="New: ${ev.new_count}"></div>
-    <div class="evol-seg seg-aging ${ACTIVE_EVOLUTION_BUCKET === 'aging' ? 'active-segment' : ''}" style="width: ${pctAging}%; background: #5B8DEF;" title="Aging: ${ev.aging_count}"></div>
-    <div class="evol-seg seg-long ${ACTIVE_EVOLUTION_BUCKET === 'long' ? 'active-segment' : ''}" style="width: ${pctLong}%; background: #F5A623;" title="Long Running: ${ev.long_running_count}"></div>
-    <div class="evol-seg seg-chronic ${ACTIVE_EVOLUTION_BUCKET === 'chronic' ? 'active-segment' : ''}" style="width: ${pctChronic}%; background: #E5484D;" title="Chronic: ${ev.chronic_count}"></div>
+    <div class="evol-seg seg-new ${ACTIVE_EVOLUTION_BUCKET === 'new' ? 'active-segment' : ''}" style="width: ${pctNew}%; background: var(--low);" title="New: ${ev.new_count}"></div>
+    <div class="evol-seg seg-aging ${ACTIVE_EVOLUTION_BUCKET === 'aging' ? 'active-segment' : ''}" style="width: ${pctAging}%; background: var(--medium);" title="Aging: ${ev.aging_count}"></div>
+    <div class="evol-seg seg-long ${ACTIVE_EVOLUTION_BUCKET === 'long' ? 'active-segment' : ''}" style="width: ${pctLong}%; background: var(--high);" title="Long Running: ${ev.long_running_count}"></div>
+    <div class="evol-seg seg-chronic ${ACTIVE_EVOLUTION_BUCKET === 'chronic' ? 'active-segment' : ''}" style="width: ${pctChronic}%; background: var(--critical);" title="Chronic: ${ev.chronic_count}"></div>
   `;
   
   const legend = document.getElementById('stacked-bar-legend');
   legend.innerHTML = `
-    <div class="legend-item"><span class="legend-dot" style="background:#6FE3C4;"></span>New (&lt;30d) · <strong>${ev.new_count}</strong></div>
-    <div class="legend-item"><span class="legend-dot" style="background:#5B8DEF;"></span>Aging (31-90d) · <strong>${ev.aging_count}</strong></div>
-    <div class="legend-item"><span class="legend-dot" style="background:#F5A623;"></span>Long Running (91-180d) · <strong>${ev.long_running_count}</strong></div>
-    <div class="legend-item"><span class="legend-dot" style="background:#E5484D;"></span>Chronic (&gt;180d) · <strong>${ev.chronic_count}</strong></div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--low);"></span>New (&lt;30d) · <strong>${ev.new_count}</strong></div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--medium);"></span>Aging (31-90d) · <strong>${ev.aging_count}</strong></div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--high);"></span>Long Running (91-180d) · <strong>${ev.long_running_count}</strong></div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--critical);"></span>Chronic (&gt;180d) · <strong>${ev.chronic_count}</strong></div>
   `;
   
   const interpretation = document.getElementById('evolution-interpretation');
@@ -493,7 +506,7 @@ function renderRiskConcentration(summary) {
                 <span class="leaderboard-score">${item.cumulative_score}</span>
               </div>
               <div class="leaderboard-bar-wrap">
-                <div class="leaderboard-bar" style="width: ${pct}%; background: var(--accent);"></div>
+                <div class="leaderboard-bar" style="width: ${pct}%; background: var(--accent-gold);"></div>
               </div>
               <div class="leaderboard-details">
                 <span>Critical: <strong>${item.critical_count}</strong></span>

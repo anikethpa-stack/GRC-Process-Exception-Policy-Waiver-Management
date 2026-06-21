@@ -43,8 +43,9 @@
   <div id="executive-alert-banner" class="executive-alert-banner">
     <span class="banner-icon">⚠</span>
     <div class="banner-text">
-      <strong><span id="banner-expired-count">—</span> expired exceptions remain active and <span id="banner-overdue-count">—</span> reviews are overdue.</strong>
-      <span class="banner-subtext">These temporary exceptions have evolved into organizational risk.</span>
+      <strong class="banner-title">BOARD RISK ALERT</strong>
+      <span class="banner-main-text"><strong><span id="banner-expired-count">—</span> expired exceptions remain active. <span id="banner-overdue-count">—</span> reviews are overdue.</strong></span>
+      <span class="banner-subtext">Temporary policy waivers are evolving into persistent organizational risk.</span>
     </div>
   </div>
 
@@ -57,12 +58,19 @@
         <span class="card-note">Overall accumulated GRC risk posture</span>
       </div>
       <div class="policy-debt-score-wrap">
-        <div class="debt-score-display">
-          <span id="debt-score-value">—</span>
-          <span class="score-denominator">/100</span>
+        <div class="debt-score-display-container">
+          <div class="debt-score-display">
+            <span id="debt-score-value">—</span>
+            <span class="score-denominator">/100</span>
+          </div>
+          <div class="debt-badge-wrap">
+            <div class="debt-badge" id="debt-badge">CRITICAL</div>
+          </div>
         </div>
-        <div class="debt-badge-wrap">
-          <div class="debt-badge" id="debt-badge">CRITICAL</div>
+        <div class="policy-debt-meta">
+          <div class="meta-row"><span class="meta-label">Trend:</span> <strong class="meta-val trend-val">↑ +6 since previous review cycle</strong></div>
+          <div class="meta-row"><span class="meta-label">Largest Driver:</span> <strong class="meta-val">245 Overdue Reviews</strong></div>
+          <div class="meta-row"><span class="meta-label">Risk Owner:</span> <strong class="meta-val">Security</strong></div>
         </div>
       </div>
       <div class="policy-debt-drivers">
@@ -108,8 +116,8 @@
   <!-- 3. Recommended Actions -->
   <section class="panel bento-panel recommended-actions-section">
     <div class="panel-head">
-      <h2>Recommended actions</h2>
-      <span class="panel-note">Prioritized next steps to reduce policy debt</span>
+      <h2>Executive Action Queue</h2>
+      <span class="panel-note">Prioritized next best actions to mitigate policy debt</span>
     </div>
     <div id="recommended-actions-grid" class="actions-bento-grid">
       <!-- Populated by JS as Bento cards -->
@@ -119,7 +127,7 @@
   <!-- 4. Risk Evolution -->
   <section class="panel bento-panel risk-evolution-section">
     <div class="panel-head">
-      <h2>Risk Evolution</h2>
+      <h2>Risk Lifecycle</h2>
       <span class="panel-note">Visualizing exception aging from short-term accommodations to permanent risk. Click an aging bucket to filter dashboard view.</span>
     </div>
     
@@ -142,8 +150,8 @@
   <!-- 5. Risk Concentration -->
   <section class="panel bento-panel risk-concentration-section">
     <div class="panel-head">
-      <h2>Risk concentration</h2>
-      <span class="panel-note">Cumulative risk aggregation by owner, department, and approver</span>
+      <h2>Department Exposure Rankings</h2>
+      <span class="panel-note">Risk aggregation rankings by owner, department, and approver</span>
     </div>
     <div id="risk-concentration" class="concentration-grids"></div>
   </section>
@@ -151,8 +159,8 @@
   <!-- 6. Priority Remediation Queue -->
   <section class="panel bento-panel priority-queue-section">
     <div class="panel-head">
-      <h2>Priority Remediation Queue</h2>
-      <span class="panel-note">Top 5 Critical Exceptions requiring immediate remediation</span>
+      <h2>Priority Remediation Queue — Risk Case Files</h2>
+      <span class="panel-note">Critical risk case files requiring immediate review committee action</span>
     </div>
     <div id="priority-queue-list" class="priority-queue-list">
       <!-- Populated by JS -->
@@ -166,15 +174,15 @@
   <section class="grid-two" id="audit-readiness-section">
     <div class="panel bento-card">
       <div class="panel-head">
-        <h2>Audit findings</h2>
+        <h2>Audit Findings</h2>
         <span class="panel-note">Focused compliance issues for immediate review</span>
       </div>
       <div id="audit-findings" class="audit-findings-grid"></div>
     </div>
     <div class="panel bento-card">
       <div class="panel-head">
-        <h2>Audit readiness</h2>
-        <span class="panel-note">Documentation and approvals KPIs</span>
+        <h2>Board Review Metrics</h2>
+        <span class="panel-note">Documentation, approvals, and readiness status indicators</span>
       </div>
       <div class="readiness-grid" id="readiness-grid"></div>
     </div>
@@ -183,7 +191,7 @@
   <!-- 8. Exception Ledger -->
   <section class="panel bento-panel" id="ledger-panel">
     <div class="panel-head">
-      <h2>Exception ledger</h2>
+      <h2>Enterprise Governance Registry</h2>
       <div class="filters">
         <input id="search-box" type="text" placeholder="Search id, requester, justification…" />
         <select id="filter-status">
@@ -227,7 +235,7 @@
   <!-- 9. Methodology Drawer -->
   <section class="panel methodology-panel">
     <button class="methodology-toggle" id="methodology-toggle">
-      <span>Methodology &amp; Risk Weight Justifications</span>
+      <span>Risk Scoring Methodology (Technical Appendix)</span>
       <span class="toggle-icon">▼</span>
     </button>
     <div class="methodology-content hidden" id="methodology-content">
